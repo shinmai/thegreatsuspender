@@ -294,6 +294,32 @@ var tgs = (function () { // eslint-disable-line no-unused-vars
         });
     }
 
+    function closeAllSuspendedTabs() {
+        chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+            var curWindowId = tabs[0].windowId;
+            chrome.windows.get(curWindowId, {populate: true}, function(curWindow) {
+                curWindow.tabs.forEach(function (tab) {
+                    if (isSuspended(tab)) {
+                        chrome.tabs.remove(tab.id);
+                    }
+                });
+            });
+        });
+    }
+
+    function closeSuspendedTabsInAllWindows() {
+        chrome.tabs.query({}, function (tabs) {
+            tabs.forEach(function (currentTab) {
+                if (isSuspended(tab))
+                    chrome.tabs.remove(tab.id);
+            });
+        });
+    }
+
+    function isSuspended(tab) {
+        return tab.url.indexOf('suspended.html') >= 0;
+    }
+
     function unsuspendAllTabs() {
         chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
             var curWindowId = tabs[0].windowId;
@@ -818,7 +844,16 @@ var tgs = (function () { // eslint-disable-line no-unused-vars
                 onclick: unsuspendAllTabs
             });
 
-            chrome.contextMenus.create({
+            //Close all suspended tabs
+            contextMenuItems.push(chrome.contextMenus.create({
+                title: "Close All Suspended Tabs",
+                contexts: allContexts,
+                onclick: closeAllSuspendedTabs()
+            }));
+
+             //Open settings page
+            contextMenuItems.push(chrome.contextMenus.create({
+                title: "Settings",
                 contexts: allContexts,
                 type: 'separator'
             });
@@ -856,6 +891,10 @@ var tgs = (function () { // eslint-disable-line no-unused-vars
 
         } else if (command === '6-unsuspend-all-windows') {
             unsuspendAllTabsInAllWindows();
+        } else if (command === '7-close-all-suspended-tabs') {
+	    closeAllSuspendedTabs();
+        } else if (command === '8-close-all-suspended-windows') {
+	    closeSuspendedTabsInAllWindows();
         }
     });
 
@@ -881,6 +920,70 @@ var tgs = (function () { // eslint-disable-line no-unused-vars
             attemptTabSuspension(sender.tab, 3);
             break;
 
+        case 'requestUnsuspendTab':
+            if (sender.tab && isSuspended(sender.tab)) {
+                unsuspendRequestList[sender.tab.id] = true;
+            }
+            break;
+
+        case 'savePreviewData':
+            savePreview(sender.tab, request.previewUrl);
+            if (debug && sender.tab) {
+                if (request.errorMsg) {
+                    console.log('Error from content script from tabId ' + sender.tab.id + ': ' + request.errorMsg);
+                } else if (request.timerMsg) {
+                    console.log('Time taken to generate preview for tabId ' + sender.tab.id + ': ' + request.timerMsg);
+                }
+            }
+            sendResponse();
+            break;
+
+        case 'suspendOne':
+            suspendHighlightedTab();
+            break;
+
+        case 'unsuspendOne':
+            unsuspendHighlightedTab();
+            break;
+
+        case 'tempWhitelist':
+            temporarilyWhitelistHighlightedTab();
+            break;
+
+        case 'undoTempWhitelist':
+            undoTemporarilyWhitelistHighlightedTab();
+            break;
+
+        case 'whitelist':
+            whitelistHighlightedTab();
+            break;
+
+        case 'removeWhitelist':
+            unwhitelistHighlightedTab();
+            break;
+
+        case 'suspendAll':
+            suspendAllTabs();
+            break;
+
+        case 'unsuspendAll':
+            unsuspendAllTabs();
+            break;
+
+        case 'suspendSelected':
+            suspendSelectedTabs();
+            break;
+
+        case 'unsuspendSelected':
+            unsuspendSelectedTabs();
+            break;
+
+        case 'closeAllSuspended':
+            closeAllSuspendedTabs();
+            break;
+
+        default:
+            break;
         }
         sendResponse();
         return false;

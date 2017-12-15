@@ -62,6 +62,12 @@
     },
     "6-unsuspend-all-windows": {
       "description": "__MSG_ext_cmd_unsuspend_all_windows_description__"
+    },
+    "7-close-all-suspended-tabs": {
+      "description": "Close all suspended tabs in active window"
+    },
+    "8-close-all-suspended-windows": {
+      "description": "Close all suspended tabs in all windows"
     }
   }
 }

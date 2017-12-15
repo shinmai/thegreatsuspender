@@ -238,5 +238,24 @@
             });
             window.close();
         });
+        document.getElementById('closeAllSuspended').addEventListener('click', function (e) {
+            chrome.runtime.sendMessage({ action: 'closeAllSuspended' });
+            window.close();
+        });
+
+        chrome.extension.getBackgroundPage().tgs.requestTabInfo(false, function (info) {
+
+            var status = info.status,
+                //timeLeft = info.timerUp, // unused
+                suspendOneVisible = (status === 'suspended' || status === 'special' || status === 'unknown') ? false : true,
+                whitelistVisible = (status !== 'whitelisted' && status !== 'special') ? true : false,
+                pauseVisible = (status === 'normal') ? true : false;
+
+            setSuspendSelectedVisibility();
+            setSuspendOneVisibility(suspendOneVisible);
+            setWhitelistVisibility(whitelistVisible);
+            setPauseVisibility(pauseVisible);
+            setStatus(status);
+        });
     }
 }());
