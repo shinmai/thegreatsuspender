@@ -844,15 +844,14 @@ var tgs = (function () { // eslint-disable-line no-unused-vars
                 onclick: unsuspendAllTabs
             });
 
-            //Close all suspended tabs
-            contextMenuItems.push(chrome.contextMenus.create({
+            chrome.contextMenus.create({
                 title: "Close All Suspended Tabs",
                 contexts: allContexts,
                 onclick: closeAllSuspendedTabs()
-            }));
+            })
 
              //Open settings page
-            contextMenuItems.push(chrome.contextMenus.create({
+            chrome.contextMenus.create({
                 title: "Settings",
                 contexts: allContexts,
                 type: 'separator'
